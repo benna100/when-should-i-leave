@@ -10,7 +10,7 @@ const minutes = today.getMinutes();
 
 let trainText = "";
 fetch(
-  `http://xmlopen.rejseplanen.dk/bin/rest.exe/departureBoard?id=008600709&date=${dayInMonth}.${month}.${yearShort}&time=${hours}:${minutes}&format=json`
+  `https://xmlopen.rejseplanen.dk/bin/rest.exe/departureBoard?id=008600709&date=${dayInMonth}.${month}.${yearShort}&time=${hours}:${minutes}&format=json`
 )
   .then((Response) => Response.json())
   .then((data) => {
