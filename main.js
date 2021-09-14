@@ -21,7 +21,7 @@ fetch(
 
     const trainDeparturesTowardsCopenhagen = firstDepartures
       .filter((departure) => departure.rtTrack === "1")
-      .slice(0, 2);
+      .slice(0, 4);
     trainText += "The next trains from Måløv towards Copenhagen leaves a<br>";
     trainDeparturesTowardsCopenhagen.forEach((departure) => {
       const trainDate = new Date();
