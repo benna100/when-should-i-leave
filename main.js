@@ -26,8 +26,10 @@ async function main() {
     "1",
     "Måløv",
     "København",
-    numberOfMinutesToStation
+    numberOfMinutesToStation,
+    "C"
   );
+  console.log(stationTextMåløv);
   document.querySelector(".måløv").innerHTML = stationTextMåløv;
 
   const stationTextVesterport = await getStringFromStation(
@@ -36,7 +38,8 @@ async function main() {
     "4",
     "Vesterport",
     "Måløv",
-    numberOfMinutesToStation
+    numberOfMinutesToStation,
+    "C"
   );
   document.querySelector(".vesterport").innerHTML = stationTextVesterport;
 }
@@ -59,22 +62,24 @@ async function getStringFromStation(
   track,
   station,
   towards,
-  numberOfMinutesToStation
+  numberOfMinutesToStation,
+  trainNumber
 ) {
   let trainText = "";
 
   const firstDepartures = await getDeparturesFromStation(stationId);
+  console.log(firstDepartures);
 
-  const trainDepartures = firstDepartures.filter(
-    (departure) => departure.type === transportType
-  );
+  const trainDepartures = firstDepartures
+    .filter((departure) => departure.type === transportType)
+    .filter((departure) => departure.name == trainNumber);
   console.log(trainDepartures);
 
-  const trainDeparturesTowardsCopenhagen = firstDepartures
-    .filter((departure) => departure.rtTrack === track)
-    .slice(0, 4);
+  const trainDeparturesTowardsCopenhagen = trainDepartures;
+  //.filter((departure) => departure.rtTrack === track)
+  console.log(trainDeparturesTowardsCopenhagen);
 
-  trainText += `De næste tog fra ${station} mod ${towards} kører kl<br>`;
+  trainText += `De næste tog fra ${station} ${towards} kører kl<br>`;
   trainDeparturesTowardsCopenhagen.forEach((departure) => {
     const dateFromDeparture = getDateFromDepartureString(departure);
 
@@ -86,10 +91,15 @@ async function getStringFromStation(
 
     const leavesAfterNow =
       dateSubtractedTimeToStation.getTime() > new Date().getTime();
+    console.log(leavesAfterNow);
     if (leavesAfterNow) {
-      trainText += `- ${
-        departure.time
-      }. Kør hjemmefra kl ${dateSubtractedTimeToStation.getHours()}:${dateSubtractedTimeToStation.getMinutes()}<br>`;
+      trainText += `- ${departure.time} mod <strong>${
+        departure.direction
+      }.</strong> Kør hjemmefra kl ${dateSubtractedTimeToStation.getHours()}:${
+        dateSubtractedTimeToStation.getMinutes() < 10
+          ? `0${dateSubtractedTimeToStation.getMinutes()}`
+          : dateSubtractedTimeToStation.getMinutes()
+      }<br>`;
     }
   });
 
