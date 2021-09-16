@@ -1,13 +1,15 @@
 //http://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=m%C3%A5l%C3%B8v&format=json
 
-async function getDeparturesFromStation(stationId) {
-  const today = new Date();
+async function getDeparturesFromStation(stationId, numberOfMinutesToStation) {
+  const nowAfterTripToStation = new Date(
+    new Date().setMinutes(new Date().getMinutes() + numberOfMinutesToStation)
+  );
 
-  const dayInMonth = today.getDate();
-  const month = today.getMonth() + 1;
-  const yearShort = `${today.getFullYear()}`.substring(2, 4);
-  const hours = today.getHours();
-  const minutes = today.getMinutes();
+  const dayInMonth = nowAfterTripToStation.getDate();
+  const month = nowAfterTripToStation.getMonth() + 1;
+  const yearShort = `${nowAfterTripToStation.getFullYear()}`.substring(2, 4);
+  const hours = nowAfterTripToStation.getHours();
+  const minutes = nowAfterTripToStation.getMinutes();
 
   return fetch(
     `https://xmlopen.rejseplanen.dk/bin/rest.exe/departureBoard?id=${stationId}&date=${dayInMonth}.${month}.${yearShort}&time=${hours}:${minutes}&format=json`
@@ -67,7 +69,10 @@ async function getStringFromStation(
 ) {
   let trainText = "";
 
-  const firstDepartures = await getDeparturesFromStation(stationId);
+  const firstDepartures = await getDeparturesFromStation(
+    stationId,
+    numberOfMinutesToStation
+  );
   console.log(firstDepartures);
 
   const trainDepartures = firstDepartures
@@ -75,8 +80,11 @@ async function getStringFromStation(
     .filter((departure) => departure.name == trainNumber);
   console.log(trainDepartures);
 
-  const trainDeparturesTowardsCopenhagen = trainDepartures;
-  //.filter((departure) => departure.rtTrack === track)
+  let trainDeparturesTowardsCopenhagen = trainDepartures.filter((departure) => {
+    if ("rtTrack" in departure) {
+      return departure.rtTrack === track;
+    }
+  });
   console.log(trainDeparturesTowardsCopenhagen);
 
   trainText += `De næste tog fra ${station} ${towards} kører kl<br>`;
@@ -89,18 +97,13 @@ async function getStringFromStation(
       )
     );
 
-    const leavesAfterNow =
-      dateSubtractedTimeToStation.getTime() > new Date().getTime();
-    console.log(leavesAfterNow);
-    if (leavesAfterNow) {
-      trainText += `- ${departure.time} mod <strong>${
-        departure.direction
-      }.</strong> Kør hjemmefra kl ${dateSubtractedTimeToStation.getHours()}:${
-        dateSubtractedTimeToStation.getMinutes() < 10
-          ? `0${dateSubtractedTimeToStation.getMinutes()}`
-          : dateSubtractedTimeToStation.getMinutes()
-      }<br>`;
-    }
+    trainText += `- ${departure.time} mod <strong>${
+      departure.direction
+    }.</strong> Kør hjemmefra kl ${dateSubtractedTimeToStation.getHours()}:${
+      dateSubtractedTimeToStation.getMinutes() < 10
+        ? `0${dateSubtractedTimeToStation.getMinutes()}`
+        : dateSubtractedTimeToStation.getMinutes()
+    }<br>`;
   });
 
   return trainText;
