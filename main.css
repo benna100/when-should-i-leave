@@ -8,10 +8,15 @@
 
 .row > ul > li {
   margin-right: 12px;
-  width: 20%;
+  width: 12%;
+}
+
+.row > ul > li:nth-child(3) {
+  width: 30%;
 }
 
 ul {
   list-style-type: none;
   padding: 0;
+  margin: 0;
 }

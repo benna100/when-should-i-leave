@@ -12,8 +12,8 @@ $form.addEventListener("submit", async (event) => {
   const stationsFromLocalStorage = JSON.parse(localStorage.getItem("stations"));
   if (stationsFromLocalStorage) {
     stationsFromLocalStorage.push({
-      stationName,
-      stationId,
+      name: stationName,
+      id: stationId,
       timeToStation,
     });
 
@@ -30,6 +30,8 @@ $form.addEventListener("submit", async (event) => {
       ])
     );
   }
+
+  main();
 });
 
 async function getStationId(station) {
@@ -62,19 +64,17 @@ async function getDeparturesFromStation(stationId, numberOfMinutesToStation) {
 
 async function main() {
   const stations = JSON.parse(localStorage.getItem("stations"));
-  console.log(stations);
   stations.forEach(async (station) => {
     const stationText = await getStringFromStation(
       station.id,
       "S",
       "1",
       station.name,
-      "København",
       station.timeToStation,
       "C"
     );
 
-    document.querySelector(".vesterport").innerHTML += stationText;
+    document.querySelector(".stations").innerHTML += stationText;
   });
 }
 
@@ -95,7 +95,6 @@ async function getStringFromStation(
   transportType,
   track,
   station,
-  towards,
   numberOfMinutesToStation,
   trainNumber
 ) {
@@ -104,17 +103,12 @@ async function getStringFromStation(
     stationId,
     numberOfMinutesToStation
   );
+
   const trainDepartures = firstDepartures
     .filter((departure) => departure.type === transportType)
     .filter((departure) => departure.name == trainNumber);
 
-  let trainDeparturesTowardsCopenhagen = trainDepartures.filter((departure) => {
-    if ("rtTrack" in departure) {
-      return departure.rtTrack === track;
-    }
-  });
-
-  trainText += `De næste tog fra ${station} ${towards} kører kl<br>`;
+  trainText += `<p>De næste tog fra <strong>${station}</strong> kører kl</p>`;
 
   trainText += `<ul>`;
   trainText += `<li class="row"><ul>
@@ -123,8 +117,7 @@ async function getStringFromStation(
   <li>Retning</li>
   <li>Spor</li>
   </ul></li>`;
-  trainDeparturesTowardsCopenhagen.forEach((departure) => {
-    console.log(departure);
+  trainDepartures.forEach((departure) => {
     const dateFromDeparture = getDateFromDepartureString(departure);
 
     const dateSubtractedTimeToStation = new Date(
@@ -134,17 +127,19 @@ async function getStringFromStation(
     );
     trainText += `<li class="row"><ul>
     <li>${departure.time}</li>
-    <li>${dateSubtractedTimeToStation.getHours()}:${
-      dateSubtractedTimeToStation.getMinutes() < 10
-        ? `0${dateSubtractedTimeToStation.getMinutes()}`
-        : dateSubtractedTimeToStation.getMinutes()
-    }</li>
+    <li>${getFormattedTime(dateSubtractedTimeToStation)}</li>
     <li>${departure.direction}</li>
-    <li>${departure.rcTrack}</li>
+    <li>${departure.rtTrack ? departure.rtTrack : "-"}</li>
     </ul></li>`;
   });
 
   trainText += `</ul>`;
 
   return trainText;
+}
+
+function getFormattedTime(time) {
+  return `${time.getHours()}:${
+    time.getMinutes() < 10 ? `0${time.getMinutes()}` : time.getMinutes()
+  }`;
 }
