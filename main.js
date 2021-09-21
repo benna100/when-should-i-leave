@@ -1,5 +1,45 @@
 //http://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=m%C3%A5l%C3%B8v&format=json
 
+const $form = document.querySelector("form");
+
+$form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  let [station, timeToStation] = event.originalTarget;
+  timeToStation = timeToStation.value;
+  const stationName = station.value;
+  const stationId = await getStationId(stationName);
+
+  const stationsFromLocalStorage = JSON.parse(localStorage.getItem("stations"));
+  if (stationsFromLocalStorage) {
+    stationsFromLocalStorage.push({
+      stationName,
+      stationId,
+      timeToStation,
+    });
+
+    localStorage.setItem("stations", JSON.stringify(stationsFromLocalStorage));
+  } else {
+    localStorage.setItem(
+      "stations",
+      JSON.stringify([
+        {
+          name: stationName,
+          id: stationId,
+          timeToStation,
+        },
+      ])
+    );
+  }
+});
+
+async function getStationId(station) {
+  return fetch(
+    `http://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=${station}&format=json`
+  )
+    .then((Response) => Response.json())
+    .then((data) => data.LocationList.StopLocation[0].id);
+}
+
 async function getDeparturesFromStation(stationId, numberOfMinutesToStation) {
   const nowAfterTripToStation = new Date(
     new Date().setMinutes(new Date().getMinutes() + numberOfMinutesToStation)
@@ -21,29 +61,21 @@ async function getDeparturesFromStation(stationId, numberOfMinutesToStation) {
 }
 
 async function main() {
-  const numberOfMinutesToStation = 8;
-  const stationTextMåløv = await getStringFromStation(
-    "008600709",
-    "S",
-    "1",
-    "Måløv",
-    "København",
-    numberOfMinutesToStation,
-    "C"
-  );
-  console.log(stationTextMåløv);
-  document.querySelector(".måløv").innerHTML = stationTextMåløv;
+  const stations = JSON.parse(localStorage.getItem("stations"));
+  console.log(stations);
+  stations.forEach(async (station) => {
+    const stationText = await getStringFromStation(
+      station.id,
+      "S",
+      "1",
+      station.name,
+      "København",
+      station.timeToStation,
+      "C"
+    );
 
-  const stationTextVesterport = await getStringFromStation(
-    "008600645",
-    "S",
-    "4",
-    "Vesterport",
-    "Måløv",
-    numberOfMinutesToStation,
-    "C"
-  );
-  document.querySelector(".vesterport").innerHTML = stationTextVesterport;
+    document.querySelector(".vesterport").innerHTML += stationText;
+  });
 }
 
 main();
@@ -68,27 +100,31 @@ async function getStringFromStation(
   trainNumber
 ) {
   let trainText = "";
-
   const firstDepartures = await getDeparturesFromStation(
     stationId,
     numberOfMinutesToStation
   );
-  console.log(firstDepartures);
-
   const trainDepartures = firstDepartures
     .filter((departure) => departure.type === transportType)
     .filter((departure) => departure.name == trainNumber);
-  console.log(trainDepartures);
 
   let trainDeparturesTowardsCopenhagen = trainDepartures.filter((departure) => {
     if ("rtTrack" in departure) {
       return departure.rtTrack === track;
     }
   });
-  console.log(trainDeparturesTowardsCopenhagen);
 
   trainText += `De næste tog fra ${station} ${towards} kører kl<br>`;
+
+  trainText += `<ul>`;
+  trainText += `<li class="row"><ul>
+  <li>Afgang station</li>
+  <li>Afgang hjem</li>
+  <li>Retning</li>
+  <li>Spor</li>
+  </ul></li>`;
   trainDeparturesTowardsCopenhagen.forEach((departure) => {
+    console.log(departure);
     const dateFromDeparture = getDateFromDepartureString(departure);
 
     const dateSubtractedTimeToStation = new Date(
@@ -96,15 +132,19 @@ async function getStringFromStation(
         dateFromDeparture.getMinutes() - numberOfMinutesToStation
       )
     );
-
-    trainText += `- ${departure.time} mod <strong>${
-      departure.direction
-    }.</strong> Kør hjemmefra kl ${dateSubtractedTimeToStation.getHours()}:${
+    trainText += `<li class="row"><ul>
+    <li>${departure.time}</li>
+    <li>${dateSubtractedTimeToStation.getHours()}:${
       dateSubtractedTimeToStation.getMinutes() < 10
         ? `0${dateSubtractedTimeToStation.getMinutes()}`
         : dateSubtractedTimeToStation.getMinutes()
-    }<br>`;
+    }</li>
+    <li>${departure.direction}</li>
+    <li>${departure.rcTrack}</li>
+    </ul></li>`;
   });
+
+  trainText += `</ul>`;
 
   return trainText;
 }

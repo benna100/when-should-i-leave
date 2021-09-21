@@ -1,3 +1,17 @@
 .måløv {
   margin-bottom: 24px;
 }
+
+.row > ul {
+  display: flex;
+}
+
+.row > ul > li {
+  margin-right: 12px;
+  width: 20%;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
