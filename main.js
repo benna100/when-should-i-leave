@@ -125,8 +125,9 @@ async function getStringFromStation(
         dateFromDeparture.getMinutes() - numberOfMinutesToStation
       )
     );
+
     trainText += `<li class="row"><ul>
-    <li>${departure.time}</li>
+    <li>${getFormattedTime(dateFromDeparture)}</li>
     <li>${getFormattedTime(dateSubtractedTimeToStation)}</li>
     <li>${departure.direction}</li>
     <li>${departure.rtTrack ? departure.rtTrack : "-"}</li>
