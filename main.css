@@ -29,6 +29,19 @@ li.row {
   margin-bottom: 6px;
 }
 
+form {
+  margin-bottom: 24px;
+}
+
 form > div {
   margin-bottom: 12px;
+}
+
+.stations > ul {
+  margin-bottom: 24px;
+}
+
+.stations > p {
+  margin-top: 0px;
+  margin-bottom: 6px;
 }
