@@ -8,7 +8,6 @@ $form.addEventListener("submit", async (event) => {
   timeToStation = timeToStation.value;
   const stationName = station.value;
   const stationId = await getStationId(stationName);
-
   const stationsFromLocalStorage = JSON.parse(localStorage.getItem("stations"));
   if (stationsFromLocalStorage) {
     stationsFromLocalStorage.push({
@@ -64,7 +63,9 @@ async function getDeparturesFromStation(stationId, numberOfMinutesToStation) {
 
 async function main() {
   const stations = JSON.parse(localStorage.getItem("stations"));
+
   stations.forEach(async (station) => {
+    console.log(station);
     const stationText = await getStringFromStation(
       station.id,
       "S",
@@ -107,8 +108,7 @@ async function getStringFromStation(
   const trainDepartures = firstDepartures
     .filter((departure) => departure.type === transportType)
     .filter((departure) => departure.name == trainNumber);
-
-  trainText += `<p>De næste tog fra <strong>${station}</strong> kører kl</p>`;
+  trainText += `<p>De næste tog fra <strong>${station}</strong></p>`;
 
   trainText += `<ul>`;
   trainText += `<li class="row"><ul>
@@ -119,11 +119,9 @@ async function getStringFromStation(
   </ul></li>`;
   trainDepartures.forEach((departure) => {
     const dateFromDeparture = getDateFromDepartureString(departure);
-
-    const dateSubtractedTimeToStation = new Date(
-      dateFromDeparture.setMinutes(
-        dateFromDeparture.getMinutes() - numberOfMinutesToStation
-      )
+    const MS_PER_MINUTE = 60000;
+    var dateSubtractedTimeToStation = new Date(
+      dateFromDeparture - numberOfMinutesToStation * MS_PER_MINUTE
     );
 
     trainText += `<li class="row"><ul>
