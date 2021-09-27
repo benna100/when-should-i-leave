@@ -1,4 +1,4 @@
-//http://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=m%C3%A5l%C3%B8v&format=json
+//https://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=m%C3%A5l%C3%B8v&format=json
 
 const $form = document.querySelector("form");
 
@@ -35,7 +35,7 @@ $form.addEventListener("submit", async (event) => {
 
 async function getStationId(station) {
   return fetch(
-    `http://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=${station}&format=json`
+    `https://xmlopen.rejseplanen.dk/bin/rest.exe/location?input=${station}&format=json`
   )
     .then((Response) => Response.json())
     .then((data) => data.LocationList.StopLocation[0].id);
