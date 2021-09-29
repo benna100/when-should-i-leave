@@ -2,6 +2,8 @@
 
 const $form = document.querySelector("form");
 
+const MS_PER_MINUTE = 60000;
+
 $form.addEventListener("submit", async (event) => {
   event.preventDefault();
   let [station, timeToStation] = event.originalTarget;
@@ -43,8 +45,10 @@ async function getStationId(station) {
 
 async function getDeparturesFromStation(stationId, numberOfMinutesToStation) {
   const nowAfterTripToStation = new Date(
-    new Date().setMinutes(new Date().getMinutes() + numberOfMinutesToStation)
+    new Date() - numberOfMinutesToStation * MS_PER_MINUTE
   );
+
+  console.log(nowAfterTripToStation);
 
   const dayInMonth = nowAfterTripToStation.getDate();
   const month = nowAfterTripToStation.getMonth() + 1;
@@ -118,8 +122,8 @@ async function getStringFromStation(
   <li>Spor</li>
   </ul></li>`;
   trainDepartures.forEach((departure) => {
+    console.log(departure);
     const dateFromDeparture = getDateFromDepartureString(departure);
-    const MS_PER_MINUTE = 60000;
     var dateSubtractedTimeToStation = new Date(
       dateFromDeparture - numberOfMinutesToStation * MS_PER_MINUTE
     );
